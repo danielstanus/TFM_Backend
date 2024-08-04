@@ -56,10 +56,12 @@ const saveQuestionByUser = async (req, res) => {
 
   try {
     const [result] = await db.query(
-      'INSERT INTO questions (chat_id, request_text, question, options, correct_answer, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      `INSERT INTO questions (chat_id, request_text, question, options, correct_answer, created_by, created_at) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7) 
+      RETURNING id;`,
       [chatId, requestText, text, JSON.stringify(options), answer, userId, createdAt]
     );
-    res.status(201).json({ message: 'Pregunta creada con éxito', questionId: result.insertId });
+    res.status(201).json({ message: 'Pregunta creada con éxito', questionId: result.rows[0].id });
   } catch (err) {
     console.error('Error al crear la pregunta:', err);
     res.status(500).json({ error: 'Error al crear la pregunta' });
@@ -71,17 +73,16 @@ const saveQuestionByUser = async (req, res) => {
 
 
 
-
 // Función para obtener las preguntas creadas por un usuario
 const getQuestionsByUser = async (req, res) => {
   const userId = req.params.userId;
   try {
-    const [questions] = await db.query(
-      'SELECT * FROM questions WHERE created_by = ? ORDER BY created_at DESC',
+    const result = await db.query(
+      'SELECT * FROM questions WHERE created_by = $1 ORDER BY created_at DESC',
       [userId]
     );
 
-    const formattedQuestions = questions.map(q => ({
+    const formattedQuestions = result.rows.map(q => ({
       id: q.id,
       chatId: q.chat_id,
       requestText: q.request_text,
@@ -89,7 +90,6 @@ const getQuestionsByUser = async (req, res) => {
       options: JSON.parse(q.options),
       correctAnswer: q.correct_answer,
     }));
-
 
     res.status(200).json(formattedQuestions);
   } catch (err) {
@@ -105,10 +105,10 @@ const getQuestionsByUser = async (req, res) => {
 // Función para crear un nuevo chat
 const createChat = async (userId) => {
   // Insertar un nuevo registro sin especificar el ID
-  const result = await db.query('INSERT INTO chats (user_id) VALUES (?)', [userId]);
+  const result = await db.query('INSERT INTO chats (user_id) VALUES ($1) RETURNING id;', [userId]);
   
   // Obtener el ID generado automáticamente
-  const chatId = result.insertId;
+  const chatId = result.rows[0].id;
   
   return chatId;
 };
