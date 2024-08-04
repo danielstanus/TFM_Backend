@@ -21,11 +21,7 @@ const getChats = async (req, res) => {
       [userId]
     );
 
-    console.log(result);
-    console.log(result.rows);
- 
     res.status(200).json(result.rows);
-
   } catch (err) {
     console.error('Error al obtener las preguntas:', err);
     res.status(500).json({ error: 'Error al obtener las preguntas' });
@@ -44,7 +40,7 @@ const createChat = async (req, res) => {
 
   try {
     // Insertar un nuevo registro en la tabla 'chats' sin especificar el ID
-    const [result] = await db.query('INSERT INTO chats (user_id) VALUES ($1) RETURNING id;', [userId]);
+    const result = await db.query('INSERT INTO chats (user_id) VALUES ($1) RETURNING id;', [userId]);
 
     // Devolver el ID del chat generado automáticamente
     return res.status(201).json({ chatId: result.rows[0].id });

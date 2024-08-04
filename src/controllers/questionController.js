@@ -101,7 +101,6 @@ const getQuestionsByUser = async (req, res) => {
 
 
 
-
 // Función para crear un nuevo chat
 const createChat = async (userId) => {
   // Insertar un nuevo registro sin especificar el ID
@@ -112,7 +111,6 @@ const createChat = async (userId) => {
   
   return chatId;
 };
-
 
 
 
