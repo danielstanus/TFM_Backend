@@ -1,17 +1,17 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "build": "vercel build"
+    "build": "echo \"No build step required\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Backend para la aplicación de chat con IA",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.24.3",
     "@azure/openai": "^1.0.0-beta.12",
@@ -33,5 +33,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=14.0.0"
   }
 }
