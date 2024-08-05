@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 
 const swaggerUi = require("swagger-ui-express");
-const swaggerSpec = require("./swaggerConfig"); // Adjust path as needed
+const swaggerSpec = require("./swaggerConfig");
 const path = require("path");
 
 const db = require("./config/db");
@@ -13,17 +13,32 @@ const messageRoutes = require("./routes/messageRoutes");
 
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+// Orígenes permitidos
+const allowedOrigins = [
+  'https://tfm-frontend-khaki.vercel.app', // Origen de producción
+  'http://localhost:3000' // Origen local (ajusta el puerto si es necesario)
+];
 
+// Configuración de CORS para permitir solicitudes desde orígenes permitidos
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permitir solicitudes sin origen (como POSTMAN) o si el origen está en la lista de permitidos
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  credentials: true,
+  optionsSuccessStatus: 204
+}));
+
+app.use(express.json());
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Página de inicio con test de la base de datos
-// app.get("/", (req, res) => {
-//   res.sendFile(path.join(__dirname, "public", "index.html"));
-// });
-
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -52,8 +67,6 @@ app.use("/api/questions", questionRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/messages", messageRoutes);
 
-
-
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
@@ -69,9 +82,6 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
 });
-
-
-
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
