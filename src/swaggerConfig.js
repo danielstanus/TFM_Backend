@@ -4,9 +4,9 @@ const swaggerOptions = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'API de Preguntas y Chats',
+      title: 'API de Quiz AI',
       version: '1.0.0',
-      description: 'Documentación de la API para el sistema de preguntas y chats',
+      description: 'Documentación de la API para el Quiz AI',
     },
     servers: [
       {
