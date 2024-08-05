@@ -28,6 +28,5 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-console.log(JSON.stringify(swaggerSpec, null, 2));
 
 module.exports = swaggerSpec;

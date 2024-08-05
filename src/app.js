@@ -20,9 +20,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Página de inicio con test de la base de datos
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
+// app.get("/", (req, res) => {
+//   res.sendFile(path.join(__dirname, "public", "index.html"));
+// });
 
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
@@ -51,6 +51,27 @@ app.use("/api/auth", authRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/messages", messageRoutes);
+
+
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
+// Captura de excepciones no manejadas
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
