@@ -18,7 +18,7 @@ const generateQuestions = async (req, res) => {
 
     console.log("Llamando a generateQuestionsFromAI...");
     const questions = await generateQuestionsFromAI(text, numQuestions);
-    console.log("Preguntas generadas:", questions);
+    console.log("Preguntas generadas, sent to frontend:", questions);
     res.json(questions);
   } catch (err) {
     console.error("Error detallado en generateQuestions:", err);
@@ -42,8 +42,6 @@ const generateQuestions = async (req, res) => {
     });
   }
 };
-
-
 // Función para guardar una pregunta creada por el usuario
 const saveQuestionByUser = async (req, res) => {
   const { text, options, answer, requestText, userId } = req.body;
@@ -67,12 +65,6 @@ const saveQuestionByUser = async (req, res) => {
     res.status(500).json({ error: 'Error al crear la pregunta' });
   }
 };
-
-
-
-
-
-
 // Función para obtener las preguntas creadas por un usuario
 const getQuestionsByUser = async (req, res) => {
   const userId = req.params.userId;
@@ -97,10 +89,6 @@ const getQuestionsByUser = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener las preguntas' });
   }
 };
-
-
-
-
 // Función para crear un nuevo chat
 const createChat = async (userId) => {
   // Insertar un nuevo registro sin especificar el ID
@@ -111,8 +99,6 @@ const createChat = async (userId) => {
   
   return chatId;
 };
-
-
 
 module.exports = {
   generateQuestions,

@@ -1,6 +1,5 @@
 const db = require('../config/db');
 
-
 // Función para obtener los chats creadao por un usuario
 const getChats = async (req, res) => {
   const userId = req.params.userId;
@@ -28,7 +27,6 @@ const getChats = async (req, res) => {
   }
 };
 
-
 // Función para guardar un chat creado por el usuario
 const createChat = async (req, res) => {
   const { userId } = req.body;
@@ -50,8 +48,8 @@ const createChat = async (req, res) => {
   }
 };
 
-
 module.exports = {
   getChats,
   createChat
 };
+

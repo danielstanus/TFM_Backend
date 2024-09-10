@@ -10,34 +10,39 @@ function generarIdSimple() {
 
 let client;
 
-const inicializarAzureAI = () => {
-  if (!process.env.AZURE_OPENAI_KEY || !process.env.AZURE_OPENAI_ENDPOINT) {
-    throw new Error("AZURE_OPENAI_KEY o AZURE_OPENAI_ENDPOINT no están definidos en el archivo .env");
-  }
-  console.log("Inicializando cliente de Azure OpenAI...");
-  console.log("Endpoint:", process.env.AZURE_OPENAI_ENDPOINT);
-  console.log("Key:", process.env.AZURE_OPENAI_KEY.substring(0, 10) + "...");
+const inicializarAI = () => {
+  if (process.env.USE_LOCAL_MODEL === 'true') {
+    console.log("Usando modelo GPT-2 local...");
+    // No necesitamos inicializar un cliente para el modelo local
+  } else {
+    if (!process.env.AZURE_OPENAI_KEY || !process.env.AZURE_OPENAI_ENDPOINT) {
+      throw new Error("AZURE_OPENAI_KEY o AZURE_OPENAI_ENDPOINT no están definidos en el archivo .env");
+    }
+    console.log("Inicializando cliente de Azure OpenAI...");
+    console.log("Endpoint:", process.env.AZURE_OPENAI_ENDPOINT);
+    console.log("Key:", process.env.AZURE_OPENAI_KEY.substring(0, 10) + "...");
 
-  try {
-    client = new OpenAIClient(
-      process.env.AZURE_OPENAI_ENDPOINT,
-      new AzureKeyCredential(process.env.AZURE_OPENAI_KEY)
-    );
-    console.log("Cliente de Azure OpenAI inicializado correctamente");
-  } catch (error) {
-    console.error("Error al inicializar el cliente de Azure OpenAI:", error);
-    throw error;
+    try {
+      client = new OpenAIClient(
+        process.env.AZURE_OPENAI_ENDPOINT,
+        new AzureKeyCredential(process.env.AZURE_OPENAI_KEY)
+      );
+      console.log("Cliente de Azure OpenAI inicializado correctamente");
+    } catch (error) {
+      console.error("Error al inicializar el cliente de Azure OpenAI:", error);
+      throw error;
+    }
   }
 };
 
 try {
-  inicializarAzureAI();
+  inicializarAI();
 } catch (error) {
-  console.error("Error al inicializar el cliente de Azure OpenAI:", error);
+  console.error("Error al inicializar el cliente de AI:", error);
 }
 
 const analizarRespuesta = (bloqueTexto) => {
-  console.log("Analizando respuesta:", bloqueTexto);
+  console.log("\n Analizando respuesta:", bloqueTexto);
 
   const lineas = bloqueTexto.split('\n').filter(linea => linea.trim() !== '');
 
@@ -89,17 +94,8 @@ const generateQuestionsFromAI = async (texto, numQuestions) => {
   try {
     console.log(`Iniciando generateQuestionsFromAI con texto: "${texto}" y numQuestions: ${numQuestions}`);
 
-
-    const apiKey = process.env.AZURE_OPENAI_KEY;
-    const endpoint = process.env.AZURE_OPENAI_ENDPOINT_URL;
-    const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
-
-    if (!apiKey || !endpoint || !deploymentName) {
-      throw new Error("Faltan variables de entorno necesarias");
-    }
-
     const questionPhrase = numQuestions === 1 ? "una pregunta" : `${numQuestions} preguntas`;
-    const questionsFormat = `Genera exactamente ${questionPhrase} de opción múltiple basada${numQuestions === 1 ? '' : 's'} en este texto: "${texto}".
+    const questionsFormat = `Genera exactamente ${questionPhrase} de opción múltiple basada${numQuestions === 1 ? '' : 's'} en este texto: "${texto}" en Español Castellano.
     ${numQuestions === 1 ? 'Proporciona la pregunta' : 'Para cada pregunta, proporciona la pregunta'}, 4 opciones (etiquetadas A, B, C, D) y la respuesta correcta.
     Formatea ${numQuestions === 1 ? 'la pregunta' : 'cada pregunta'} de la siguiente manera:
     Pregunta ${numQuestions === 1 ? '1' : '[numero de pregunta]'}: [Tu pregunta aquí]
@@ -115,83 +111,35 @@ const generateQuestionsFromAI = async (texto, numQuestions) => {
     Asegúrate de que las opciones no tengan espacios entre ellas y que no tengan guiones ni puntos al final de las opciones.
     ${numQuestions === 1 ? '' : 'Proporciona exactamente ' + numQuestions + ' preguntas, ni más ni menos.'}`;
 
-    // const questionPhrase = numQuestions === 1 ? "una pregunta" : `${numQuestions} preguntas`;
-    // const questionsFormat = numQuestions === 1 
-    //   ? `Genera exactamente una pregunta de opción múltiple basada en este texto: "${texto}".
-    //     Proporciona la pregunta, 4 opciones (etiquetadas A, B, C, D) y la respuesta correcta.
-    //     Formatea la pregunta de la siguiente manera:
-    //     Pregunta 1: [Tu pregunta aquí]
-  
-    //     Opciones:
-    //     A) [Opción A]
-    //     B) [Opción B]
-    //     C) [Opción C]
-    //     D) [Opción D]
-  
-    //     Respuesta: [Letra de la respuesta correcta]`
-    //   : `Genera exactamente ${numQuestions} preguntas de opción múltiple basadas en este texto: "${texto}".
-    //     Para cada pregunta, proporciona la pregunta, 4 opciones (etiquetadas A, B, C, D) y la respuesta correcta.
-    //     Formatea cada pregunta de la siguiente manera:
-    //     Pregunta [numero de pregunta]: [Tu pregunta aquí]
-  
-    //     Opciones:
-    //     A) [Opción A]
-    //     B) [Opción B]
-    //     C) [Opción C]
-    //     D) [Opción D]
-  
-    //     Respuesta: [Letra de la respuesta correcta]
-    //     Ten en cuanta que las opciones vengan sin espacios entre ellas y que no tengan guiones ni puntos al final de las opciones.`;
-  
-    const requestBody = {
-      messages: [
-        { role: "system", content: "Eres un asistente útil que genera preguntas de opción múltiple." },
-        { role: "user", content: questionsFormat }
-      ],
-      max_tokens: 1000,
-      temperature: 0.7,
-      top_p: 1
-    };
+    let response;
 
-    console.log("Enviando solicitud a Azure OpenAI...");
-    console.log("URL:", endpoint);
+    if (process.env.USE_LOCAL_MODEL === 'true') {
+      // Usar el modelo GPT-2 local
+      const localEndpoint = "http://localhost:8005/chat";
 
-    const response = await axios.post(endpoint, requestBody, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      }
-    });
+      const requestBody = {
+        question: questionsFormat
+      };
 
-    console.log("Respuesta recibida de Azure OpenAI:");
 
-    if (response.status === 200) {
-      console.log(response.data.choices[0].message.content);
+      const now = new Date();
+      const horaActual = now.toLocaleTimeString(); // Formatea la hora según la configuración local
+      console.log(`${horaActual} - Enviando solicitud al modelo llama3 local`);
 
-      const respuestaCompleta = response.data.choices[0].message.content;
-      const bloquesPregunta = respuestaCompleta.split(/(?=Pregunta \d+:)/).filter(bloque => bloque.trim() !== '');
+      response = await axios.post(localEndpoint, requestBody);
+
+      // Asumiendo que el modelo llama3 local devuelve directamente el texto generado
+      const generatedText = response.data.answer;
+
+      const now2 = new Date();
+      const horaActual2 = now2.toLocaleTimeString(); // Formatea la hora según la configuración local
+      console.log(`${horaActual2} - Respuesta recibida del modelo llama3 local  \n "${generatedText}"`);
+
+      const bloquesPregunta = generatedText.split(/(?=Pregunta \d+:)/).filter(bloque => bloque.trim() !== '');
 
       const preguntas = bloquesPregunta
         .map(bloque => analizarRespuesta(bloque))
         .filter(q => q !== null);
-
-
-      // // Asegurarse de que tenemos exactamente numQuestions preguntas
-      // if (preguntas.length < numQuestions) {
-      //   console.warn(`Se generaron menos preguntas (${preguntas.length}) de las solicitadas (${numQuestions}). Rellenando con preguntas genéricas.`);
-      //   while (preguntas.length < numQuestions) {
-      //     preguntas.push({
-      //       pregunta: "Pregunta genérica",
-      //       opciones: ["Opción A", "Opción B", "Opción C", "Opción D"],
-      //       respuestaCorrecta: "Opción A"
-      //     });
-      //   }
-      // } else if (preguntas.length > numQuestions) {
-      //   console.warn(`Se generaron más preguntas (${preguntas.length}) de las solicitadas (${numQuestions}). Recortando el exceso.`);
-      //   preguntas = preguntas.slice(0, numQuestions);
-      // }
-
-
 
       return preguntas.map((q, index) => ({
         id: generarIdSimple(),
@@ -201,7 +149,51 @@ const generateQuestionsFromAI = async (texto, numQuestions) => {
       }));
 
     } else {
-      throw new Error(`La solicitud falló con código de estado: ${response.status}`);
+      // Usar Azure OpenAI
+      const apiKey = process.env.AZURE_OPENAI_KEY;
+      const endpoint = process.env.AZURE_OPENAI_ENDPOINT_URL;
+      const deploymentName = process.env.AZURE_OPENAI_DEPLOYMENT_NAME;
+
+      if (!apiKey || !endpoint || !deploymentName) {
+        throw new Error("Faltan variables de entorno necesarias para Azure OpenAI");
+      }
+
+      const requestBody = {
+        messages: [
+          { role: "system", content: "Eres un asistente útil que genera preguntas de opción múltiple." },
+          { role: "user", content: questionsFormat }
+        ],
+        max_tokens: 1000,
+        temperature: 0.7,
+        top_p: 1
+      };
+
+      console.log("Enviando solicitud a Azure OpenAI...");
+      console.log("questionsFormat:", questionsFormat);
+
+      response = await axios.post(endpoint, requestBody, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        }
+      });
+
+      console.log("Respuesta recibida de Azure OpenAI:");
+      console.log(response.data.choices[0].message.content);
+
+      const respuestaCompleta = response.data.choices[0].message.content;
+      const bloquesPregunta = respuestaCompleta.split(/(?=Pregunta \d+:)/).filter(bloque => bloque.trim() !== '');
+
+      const preguntas = bloquesPregunta
+        .map(bloque => analizarRespuesta(bloque))
+        .filter(q => q !== null);
+
+      return preguntas.map((q, index) => ({
+        id: generarIdSimple(),
+        question: `${index + 1}. ${q.pregunta}`,
+        options: q.opciones,
+        correctAnswer: q.respuestaCorrecta
+      }));
     }
 
   } catch (error) {
@@ -220,3 +212,4 @@ const generateQuestionsFromAI = async (texto, numQuestions) => {
 module.exports = {
   generateQuestionsFromAI,
 };
+

@@ -13,12 +13,10 @@ const messageRoutes = require("./routes/messageRoutes");
 
 const app = express();
 
-// Orígenes permitidos
 const allowedOrigins = [
   'https://tfm-frontend-khaki.vercel.app', // Origen de producción
-  'http://localhost:3000' // Origen local (ajusta el puerto si es necesario)
+  'http://localhost:3000' // Origen local 
 ];
-
 // Configuración de CORS para permitir solicitudes desde orígenes permitidos
 app.use(cors({
   origin: function (origin, callback) {
@@ -35,16 +33,12 @@ app.use(cors({
 }));
 
 app.use(express.json());
-
 app.use(express.static(path.join(__dirname, 'public')));
-
 // Página de inicio con test de la base de datos
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
 // Endpoint de prueba para la conexión a la base de datos
 app.get("/api/test", async (req, res) => {
   try {
@@ -61,23 +55,21 @@ app.get("/api/test", async (req, res) => {
     });
   }
 });
-
 app.use("/api/auth", authRoutes);
 app.use("/api/questions", questionRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/messages", messageRoutes);
 
+// Error de rutas no encontradas
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
-
 // Captura de excepciones no manejadas
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
   process.exit(1);
 });
-
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);

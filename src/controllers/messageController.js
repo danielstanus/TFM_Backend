@@ -25,7 +25,6 @@ const saveMessage = async (req, res) => {
     res.status(500).json({ error: 'Error al guardar el mensaje' });
   }
 };
-
 // Función para obtener los mensajes creados por un usuario y un chat específico
 const getMessages = async (req, res) => {
   const userId = req.params.userId;
@@ -54,7 +53,6 @@ const getMessages = async (req, res) => {
     res.status(500).json({ error: 'Error al obtener los mensajes' });
   }
 };
-
 // Función para crear un nuevo chat
 const createChat = async (userId) => {
   try {

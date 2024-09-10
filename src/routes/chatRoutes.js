@@ -10,3 +10,4 @@ router.post('/create', authenticateToken, createChat);
 router.get('/user/:userId', authenticateToken, getChats);
 
 module.exports = router;
+
